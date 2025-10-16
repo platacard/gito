@@ -1,0 +1,24 @@
+{
+  "originHash" : "6938e586b9123aa60aba0d68608db9c0b3eb6bea6bc7ad399159c995fb37b52c",
+  "pins" : [
+    {
+      "identity" : "corredor",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/platacard/corredor.git",
+      "state" : {
+        "revision" : "0e578df029efd1e5d82c49352e3caf4f2b4628f5",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "cronista",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/platacard/cronista.git",
+      "state" : {
+        "revision" : "387eec748412b90d0d5274931fcff0b596ca5e65",
+        "version" : "1.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}
