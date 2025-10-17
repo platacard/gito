@@ -2,7 +2,11 @@ import Foundation
 import Corredor
 import Cronista
 
-/// Wraps various git commands
+/// Wraps various git commands.
+/// Uses some of GitLab and GitHub predefined variables for CI/CD
+///
+/// [GitHub variables](https://docs.github.com/en/actions/reference/workflows-and-actions/variables)
+/// [GitLab variables](https://docs.gitlab.com/ci/variables/predefined_variables/)
 public class Gito {
     private var logger = Cronista(module: "Gito", category: "default")
     private var env: [String: String] { ProcessInfo.processInfo.environment }
@@ -31,8 +35,7 @@ public extension Gito {
         }
     }
     
-    /// Gitlab specific branch name for shallow clones
-    /// TODO: make it git provider independent
+    /// Branch name for shallow clones
     func currentBranchName() throws -> String {
         if let mrBranch = env["CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"] {
             return mrBranch
@@ -41,7 +44,15 @@ public extension Gito {
         if let pushBranch = env["CI_COMMIT_BRANCH"] {
             return pushBranch
         }
-        
+
+        if let prBranch = env["GITHUB_HEAD_REF"] { // Pull request
+            return prBranch
+        }
+
+        if let pushRef = env["GITHUB_REF"], env["GITHUB_REF_TYPE"] == "branch" { // Push
+            return pushRef
+        }
+
         return try Shell.command("git rev-parse --abbrev-ref HEAD", in: folder).run()
     }
     
@@ -75,10 +86,14 @@ public extension Gito {
     }
     
     func commitSHA() throws -> String {
-        if let sha = env["CI_COMMIT_SHORT_SHA"] {
-            return sha
+        if let gitlabSHA = env["CI_COMMIT_SHORT_SHA"] {
+            return gitlabSHA
         }
-        
+
+        if let githubSHA = env["GITHUB_SHA"] {
+            return githubSHA
+        }
+
         let sha = try Shell.command("git log -1 --pretty=format:'%h' | xargs echo", in: folder, options: [.printOutput]).run()
         return sha.trimmingCharacters(in: .whitespacesAndNewlines)
     }
