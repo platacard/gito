@@ -159,7 +159,7 @@ final class GitoTests: XCTestCase {
     }
     
     func testLastCommitInfoNoThrow() throws {
-        XCTAssertNoThrow(try sut.lastCommitInfo(branch: "main"))
+        XCTAssertNoThrow(try sut.lastCommitInfo(branch: "HEAD"))
     }
     
     func testFetchNoThrow() throws {
