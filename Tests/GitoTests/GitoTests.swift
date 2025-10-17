@@ -63,6 +63,92 @@ final class GitoTests: XCTestCase {
         unsetenv("CI_COMMIT_SHORT_SHA")
     }
     
+    func test_CommitShaFromGitHub() throws {
+        // Given
+        let expected = "abc123def456"
+        setenv("GITHUB_SHA", expected, 1)
+        // When
+        let actual = try sut.commitSHA()
+        // Then
+        XCTAssertEqual(expected, actual)
+        // Teardown
+        unsetenv("GITHUB_SHA")
+    }
+    
+    func test_CurrentBranchFromGitHubPullRequest() throws {
+        // Given
+        let expected = "feature-branch"
+        setenv("GITHUB_HEAD_REF", expected, 1)
+        // When
+        let actual = try sut.currentBranchName()
+        // Then
+        XCTAssertEqual(expected, actual)
+        // Teardown
+        unsetenv("GITHUB_HEAD_REF")
+    }
+    
+    func test_CurrentBranchFromGitHubPush() throws {
+        // Given
+        let expected = "refs/heads/main"
+        setenv("GITHUB_REF", expected, 1)
+        setenv("GITHUB_REF_TYPE", "branch", 1)
+        // When
+        let actual = try sut.currentBranchName()
+        // Then
+        XCTAssertEqual(expected, actual)
+        // Teardown
+        unsetenv("GITHUB_REF")
+        unsetenv("GITHUB_REF_TYPE")
+    }
+    
+    func test_CurrentBranchIsStableFromGitHubPullRequest() throws {
+        // Given
+        setenv("GITHUB_HEAD_REF", "main", 1)
+        // When
+        let isStable = try sut.isBranchStable()
+        // Then
+        XCTAssertTrue(isStable)
+        // Teardown
+        unsetenv("GITHUB_HEAD_REF")
+    }
+    
+    func test_CurrentBranchIsNotStableFromGitHubPullRequest() throws {
+        // Given
+        setenv("GITHUB_HEAD_REF", "feature-branch", 1)
+        // When
+        let isStable = try sut.isBranchStable()
+        // Then
+        XCTAssertFalse(isStable)
+        // Teardown
+        unsetenv("GITHUB_HEAD_REF")
+    }
+    
+    func test_CurrentBranchIsStableFromGitHubPush() throws {
+        // Given
+        setenv("GITHUB_REF", "main", 1)
+        setenv("GITHUB_REF_TYPE", "branch", 1)
+        // When
+        let isStable = try sut.isBranchStable()
+        // Then
+        XCTAssertTrue(isStable)
+        // Teardown
+        unsetenv("GITHUB_REF")
+        unsetenv("GITHUB_REF_TYPE")
+    }
+    
+    func test_CurrentBranchIsNotStableFromGitHubPush() throws {
+        // Given
+        setenv("GITHUB_REF", "refs/heads/feature-branch", 1)
+        setenv("GITHUB_REF_TYPE", "branch", 1)
+        // When
+        let isStable = try sut.isBranchStable()
+        // Then
+        XCTAssertFalse(isStable)
+        // Teardown
+        unsetenv("GITHUB_REF")
+        unsetenv("GITHUB_REF_TYPE")
+    }
+    
     func testLastCommitShaDoesNotThrow() throws {
         XCTAssertNoThrow(try sut.commitSHA())
     }
