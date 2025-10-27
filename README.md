@@ -1,6 +1,6 @@
 # Gito
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Gito is a Swift wrapper for various git commands, designed to work with CI/CD environments. It supports both GitLab and GitHub predefined variables for CI/CD pipelines. A small part of the larger iOS deploy infrastructure at Plata.
@@ -74,6 +74,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/NoFearJoe"><img src="https://avatars.githubusercontent.com/u/4526841?v=4?s=100" width="100px;" alt="Ilya Kharabet"/><br /><sub><b>Ilya Kharabet</b></sub></a><br /><a href="https://github.com/platacard/gito/commits?author=NoFearJoe" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ra2ra"><img src="https://avatars.githubusercontent.com/u/47505754?v=4?s=100" width="100px;" alt="Vasily"/><br /><sub><b>Vasily</b></sub></a><br /><a href="https://github.com/platacard/gito/commits?author=ra2ra" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/niceta"><img src="https://avatars.githubusercontent.com/u/37310530?v=4?s=100" width="100px;" alt="niceta"/><br /><sub><b>niceta</b></sub></a><br /><a href="https://github.com/platacard/gito/commits?author=niceta" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
