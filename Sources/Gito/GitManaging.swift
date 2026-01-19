@@ -15,8 +15,11 @@ public protocol GitManaging: Sendable {
     /// Check if a remote origin is configured
     func hasRemote() async -> Bool
 
-    /// Commit all changes and push to remote (if configured)
-    func commitAndPush(message: String) async throws
+    /// Commit all changes and optionally push to remote
+    /// - Parameters:
+    ///   - message: Commit message
+    ///   - push: Whether to push to remote (default: true)
+    func commitAndPush(message: String, push: Bool) async throws
 
     /// Check if a file exists at the given path (relative to repo root)
     func fileExists(path: String) async -> Bool

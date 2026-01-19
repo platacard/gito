@@ -74,7 +74,7 @@ public actor GitStorage: GitManaging {
         return hasRemoteSync()
     }
 
-    public func commitAndPush(message: String) throws {
+    public func commitAndPush(message: String, push: Bool = false) throws {
         logger.info("Committing changes: \(message)")
         try run("git add .")
 
@@ -86,6 +86,8 @@ public actor GitStorage: GitManaging {
         }
 
         try run("git commit -m \"\(message)\"")
+
+        guard push else { return }
 
         if hasRemoteSync() {
             logger.info("Pushing to remote...")
