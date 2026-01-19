@@ -39,6 +39,17 @@ public actor GitStorage: GitManaging {
         self.localURL = URL(fileURLWithPath: localPath)
     }
 
+    /// Initialize with a remote URL and a specific local path (clone remote to local)
+    /// - Parameters:
+    ///   - url: Remote repository URL
+    ///   - localPath: Local filesystem path for the repository
+    ///   - branch: Branch name (defaults to "main")
+    public init(url: String, localPath: String, branch: String = "main") {
+        self.remoteURL = url
+        self.branch = branch
+        self.localURL = URL(fileURLWithPath: localPath)
+    }
+
     // MARK: - GitManaging
 
     public func cloneOrPull() throws {
