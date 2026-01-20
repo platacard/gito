@@ -179,11 +179,26 @@ public actor GitStorage: GitManaging {
         try run("git commit -m \"Initialize storage\"")
     }
 
+    /// Escape a string so it can be safely used as a single shell argument.
+    /// This uses single-quote wrapping and escapes embedded single quotes.
+    private func shellEscape(_ argument: String) -> String {
+        if argument.isEmpty {
+            return "''"
+        }
+        return "'" + argument.replacingOccurrences(of: "'", with: "'\"'\"'") + "'"
+    }
+
     private func clone(from url: String) throws {
         logger.info("Cloning \(url) to \(localURL.path)...")
-        try FileManager.default.createDirectory(at: localURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let parentDir = localURL.deletingLastPathComponent().path
-        try Shell.command("cd \(parentDir) && git clone --branch \(branch) \(url) \(localURL.path)").run()
+        let parentDirectoryURL = localURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: parentDirectoryURL, withIntermediateDirectories: true)
+
+        let escapedBranch    = shellEscape(branch)
+        let escapedURL       = shellEscape(url)
+        let escapedLocalPath = shellEscape(localURL.path)
+
+        let command = "git clone --branch \(escapedBranch) \(escapedURL) \(escapedLocalPath)"
+        try Shell.command(command, in: parentDirectoryURL).run()
     }
 
     private func hasRemoteSync() -> Bool {
