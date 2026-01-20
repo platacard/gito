@@ -64,11 +64,11 @@ public actor GitStorage: GitManaging {
     public func setRemote(url: String) throws {
         let hasExistingRemote = hasRemoteSync()
         if hasExistingRemote {
-            try run("git remote set-url origin \(url)")
+            try run("git remote set-url origin \(shellEscape(url))")
         } else {
-            try run("git remote add origin \(url)")
+            try run("git remote add origin \(shellEscape(url))")
         }
-        logger.info("Remote set to \(url)")
+        logger.info("Remote set to \(shellEscape(url))")
     }
 
     public func hasRemote() -> Bool {
@@ -92,7 +92,7 @@ public actor GitStorage: GitManaging {
 
         if hasRemoteSync() {
             logger.info("Pushing to remote...")
-            try run("git push origin \(branch)")
+            try run("git push origin \(shellEscape(branch))")
         } else {
             logger.info("No remote configured, changes committed locally only")
         }
@@ -122,7 +122,7 @@ public actor GitStorage: GitManaging {
             logger.warning("No remote configured, cannot pull")
             return
         }
-        try run("git pull origin \(branch)")
+        try run("git pull origin \(shellEscape(branch))")
     }
 
     /// Reset local changes and match remote
@@ -143,8 +143,11 @@ public actor GitStorage: GitManaging {
     public func currentShortSHA() throws -> String {
         return try run("git rev-parse --short HEAD").trimmingCharacters(in: .whitespacesAndNewlines)
     }
+}
 
-    // MARK: - Private
+// MARK: - Private
+
+extension GitStorage {
 
     private func cloneOrPullFromRemote(url: String) throws {
         if FileManager.default.fileExists(atPath: localURL.path) {
@@ -154,7 +157,7 @@ public actor GitStorage: GitManaging {
                 try clone(from: url)
             } else {
                 try run("git reset --hard")
-                try run("git pull origin \(branch)")
+                try run("git pull origin \(shellEscape(branch))")
             }
         } else {
             try clone(from: url)
@@ -213,8 +216,11 @@ public actor GitStorage: GitManaging {
             throw Error.commandFailed(command: command, underlying: error)
         }
     }
+}
 
-    // MARK: - Error
+// MARK: - Error
+
+extension GitStorage {
 
     public enum Error: Swift.Error, LocalizedError {
         case commandFailed(command: String, underlying: Swift.Error)
