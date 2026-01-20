@@ -25,8 +25,9 @@ public actor GitStorage: GitManaging {
     public init(url: String, branch: String = "main") {
         self.remoteURL = url
         self.branch = branch
-        let hash = String(format: "%02x", url.hashValue)
-        self.localURL = FileManager.default.temporaryDirectory.appendingPathComponent("gito_storage_\(hash)")
+        self.localURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "gito_storage_\(url.hashValue)"
+        )
     }
 
     /// Initialize with a local path only (local-first, no remote)
