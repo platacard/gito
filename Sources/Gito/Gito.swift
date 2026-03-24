@@ -99,7 +99,7 @@ public extension Gito {
     }
     
     func clone(branch: String, depth: String = "1", url: String, targetFolder: String) throws {
-        try Shell.command("git clone --branch \(branch) --depth \(depth) \(url) \(targetFolder)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git clone --branch \"\(branch)\" --depth \(depth) \(url) \(targetFolder)", in: folder, options: [.printOutput]).run()
     }
     
     func add(file: String = ".") throws {
@@ -111,15 +111,15 @@ public extension Gito {
     }
     
     func push(options: [String], dst: String = "", branch: String = "") throws {
-        try Shell.command("git push \(options.joined(separator: " ")) \(dst) \(branch)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git push \(options.joined(separator: " ")) \(dst) \"\(branch)\"", in: folder, options: [.printOutput]).run()
     }
     
     func branch(name: String, options: [String] = []) throws {
-        try Shell.command("git branch \(options.joined(separator: " ")) \(name)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git branch \(options.joined(separator: " ")) \"\(name)\"", in: folder, options: [.printOutput]).run()
     }
     
     func checkout(branch: String, options: [String] = []) throws {
-        try Shell.command("git checkout \(options.joined(separator: " ")) \(branch)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git checkout \(options.joined(separator: " ")) \"\(branch)\"", in: folder, options: [.printOutput]).run()
     }
     
     /// Fetches from remote repositories.
@@ -166,7 +166,7 @@ public extension Gito {
     /// Returns the last commit date and author
     func lastCommitInfo(branch: String) throws -> String {
         try Shell.command(
-            "git --no-pager log --no-merges -n 1 --format=\"%cr, %an\" \(branch)",
+            "git --no-pager log --no-merges -n 1 --format=\"%cr, %an\" \"\(branch)\"",
             in: folder,
             options: [.printOutput]
         )
@@ -182,7 +182,7 @@ public extension Gito {
         let unmerged = try unmergedRemoteBranches(stripOrigin: false)
         for branch in unmerged {
             let lastCommitDate = try Shell.command(
-                "git --no-pager log -1 --format=%cd --date=iso-strict \(branch)",
+                "git --no-pager log -1 --format=%cd --date=iso-strict \"\(branch)\"",
                 in: folder,
                 options: [.printOutput]
             )
@@ -205,7 +205,7 @@ public extension Gito {
     
     /// Removes the branch from remote (origin)
     func removeRemoteBranch(_ branch: String) throws {
-        try Shell.command("git push --delete origin \(branch)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git push --delete origin \"\(branch)\"", in: folder, options: [.printOutput]).run()
     }
     
     enum CommitComponent: String, CaseIterable {
