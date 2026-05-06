@@ -10,9 +10,9 @@ import Cronista
 public class Gito {
     private var logger = Cronista(module: "Gito", category: "default")
     private var env: [String: String] { ProcessInfo.processInfo.environment }
-    
-    private let folder: URL
-    
+
+    let folder: URL
+
     public nonisolated init(
         in folder: URL = URL(filePath: FileManager.default.currentDirectoryPath)
     ) {
@@ -109,6 +109,15 @@ public extension Gito {
     func commit(message: String) throws {
         try Shell.command("git commit -m \"\(message)\"", in: folder, options: [.printOutput]).run()
     }
+
+    /// Variant that supports skipping pre-commit hooks and empty commits.
+    func commit(message: String, noVerify: Bool, allowEmpty: Bool = false) throws {
+        var parts = ["git commit"]
+        if noVerify { parts.append("--no-verify") }
+        if allowEmpty { parts.append("--allow-empty") }
+        parts.append("-m \"\(message)\"")
+        try Shell.command(parts.joined(separator: " "), in: folder, options: [.printOutput]).run()
+    }
     
     func push(options: [String], dst: String = "", branch: String = "") throws {
         try Shell.command("git push \(options.joined(separator: " ")) \(dst) \"\(branch)\"", in: folder, options: [.printOutput]).run()
@@ -120,6 +129,16 @@ public extension Gito {
     
     func checkout(branch: String, options: [String] = []) throws {
         try Shell.command("git checkout \(options.joined(separator: " ")) \"\(branch)\"", in: folder, options: [.printOutput]).run()
+    }
+
+    /// Variant that takes a starting-point ref (e.g. `git checkout -B feature origin/main`).
+    func checkout(branch: String, options: [String], startPoint: String) throws {
+        let opts = options.joined(separator: " ")
+        try Shell.command(
+            "git checkout \(opts) \"\(branch)\" \"\(startPoint)\"",
+            in: folder,
+            options: [.printOutput]
+        ).run()
     }
     
     /// Fetches from remote repositories.
