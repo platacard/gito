@@ -25,7 +25,7 @@ final class CherryPickTests {
         try repo.git("checkout", "main")
         #expect(try repo.head() == main)
 
-        let outcome = try sut.cherryPick(.apply(hash: featureHash))
+        let outcome = try sut.cherryPick(hash: featureHash)
 
         #expect(outcome == .applied)
         #expect(try repo.head() != main)
@@ -39,7 +39,7 @@ final class CherryPickTests {
         let featureHash = try repo.commitFile(path: "a.txt", content: "x", message: "with -x")
         try repo.git("checkout", "main")
 
-        try sut.cherryPick(.apply(hash: featureHash, recordOrigin: true))
+        try sut.cherryPick(hash: featureHash, recordOrigin: true)
 
         let body = try repo.git("log", "-1", "--format=%B")
         #expect(body.contains("(cherry picked from commit"))
@@ -54,7 +54,7 @@ final class CherryPickTests {
         try repo.git("checkout", "main")
         #expect(try repo.head() == mainTip)
 
-        let outcome = try sut.cherryPick(.apply(hash: otherHash))
+        let outcome = try sut.cherryPick(hash: otherHash)
 
         guard case .conflict = outcome else {
             Issue.record("expected .conflict, got \(outcome)")
@@ -71,10 +71,10 @@ final class CherryPickTests {
         let dupHash = try repo.commitFile(path: "a.txt", content: "shared\n", message: "branch writes the same")
         try repo.git("checkout", "main")
 
-        let outcome = try sut.cherryPick(.apply(hash: dupHash))
+        let outcome = try sut.cherryPick(hash: dupHash)
         #expect(outcome == .empty)
 
-        try sut.cherryPick(.skip)
+        try sut.cherryPickSkip()
         #expect(!FileManager.default.fileExists(atPath: repo.url.appendingPathComponent(".git/CHERRY_PICK_HEAD").path))
     }
 
@@ -84,9 +84,9 @@ final class CherryPickTests {
         try repo.git("checkout", "-b", "b", "HEAD~1")
         let h = try repo.commitFile(path: "f.txt", content: "b\n", message: "b")
         try repo.git("checkout", "main")
-        _ = try sut.cherryPick(.apply(hash: h))
+        _ = try sut.cherryPick(hash: h)
 
-        try sut.cherryPick(.skip)
+        try sut.cherryPickSkip()
         #expect(!FileManager.default.fileExists(atPath: repo.url.appendingPathComponent(".git/CHERRY_PICK_HEAD").path))
     }
 
@@ -97,9 +97,9 @@ final class CherryPickTests {
         try repo.git("checkout", "-b", "b", "HEAD~1")
         let h = try repo.commitFile(path: "f.txt", content: "b\n", message: "b")
         try repo.git("checkout", "main")
-        _ = try sut.cherryPick(.apply(hash: h))
+        _ = try sut.cherryPick(hash: h)
 
-        try sut.cherryPick(.abort)
+        try sut.cherryPickAbort()
         #expect(try repo.head() == mainTip)
         let content = try String(contentsOf: repo.url.appendingPathComponent("f.txt"), encoding: .utf8)
         #expect(content == "main\n")
@@ -108,7 +108,7 @@ final class CherryPickTests {
     @Test
     func pick_invalidHash_throws() {
         #expect(throws: ShellRunner.Error.self) {
-            try sut.cherryPick(.apply(hash: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"))
+            try sut.cherryPick(hash: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef")
         }
     }
 }
