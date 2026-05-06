@@ -1,22 +1,24 @@
 import Foundation
-import XCTest
+import Testing
 import Corredor
 @testable import Gito
 
-final class MergeBaseTests: XCTestCase {
-    var repo: TempRepo!
-    var sut: Gito!
+@Suite
+final class MergeBaseTests {
+    let repo: TempRepo
+    let sut: Gito
 
-    override func setUpWithError() throws {
+    init() throws {
         repo = try TempRepo()
         sut = Gito(in: repo.url)
     }
 
-    override func tearDownWithError() throws {
-        try repo.tearDown()
+    deinit {
+        try? repo.tearDown()
     }
 
-    func test_mergeBase_returnsForkPoint() throws {
+    @Test
+    func mergeBase_returnsForkPoint() throws {
         let base = try repo.head()
         try repo.git("checkout", "-b", "a")
         try repo.commitFile(path: "a.txt", content: "a", message: "a1")
@@ -26,10 +28,11 @@ final class MergeBaseTests: XCTestCase {
         let bTip = try repo.head()
 
         let result = try sut.mergeBase(aTip, bTip)
-        XCTAssertEqual(result, base)
+        #expect(result == base)
     }
 
-    func test_mergeBase_unrelatedHistories_returnsNil() throws {
+    @Test
+    func mergeBase_unrelatedHistories_returnsNil() throws {
         // Establish a real commit on main first so the orphan branch has
         // something to diverge from (empty-tree merge-base behaviour varies).
         try repo.commitFile(path: "main.txt", content: "m\n", message: "main commit")
@@ -43,25 +46,26 @@ final class MergeBaseTests: XCTestCase {
         let alien = try repo.head()
 
         let result = try sut.mergeBase(alien, main)
-        XCTAssertNil(result)
+        #expect(result == nil)
     }
 
-    func test_mergeBase_invalidRef_throws() throws {
-        XCTAssertThrowsError(try sut.mergeBase("nope", "HEAD")) { error in
-            guard case ShellRunner.Error.commandFailed = error else {
-                return XCTFail("expected ShellRunner.Error.commandFailed, got \(error)")
-            }
+    @Test
+    func mergeBase_invalidRef_throws() {
+        #expect(throws: ShellRunner.Error.self) {
+            try sut.mergeBase("nope", "HEAD")
         }
     }
 
-    func test_isAncestor_trueForReachable() throws {
+    @Test
+    func isAncestor_trueForReachable() throws {
         let base = try repo.head()
         try repo.commitFile(path: "x.txt", content: "x", message: "x1")
         let result = try sut.isAncestor(base, of: "HEAD")
-        XCTAssertTrue(result)
+        #expect(result)
     }
 
-    func test_isAncestor_falseForUnreachable() throws {
+    @Test
+    func isAncestor_falseForUnreachable() throws {
         let base = try repo.head()
         try repo.git("checkout", "-b", "side")
         let sideTip = try repo.commitFile(path: "s.txt", content: "s", message: "s1")
@@ -69,14 +73,13 @@ final class MergeBaseTests: XCTestCase {
         _ = base
 
         let result = try sut.isAncestor(sideTip, of: "main")
-        XCTAssertFalse(result)
+        #expect(!result)
     }
 
-    func test_isAncestor_invalidRef_throws() throws {
-        XCTAssertThrowsError(try sut.isAncestor("HEAD", of: "no-such-branch")) { error in
-            guard case ShellRunner.Error.commandFailed = error else {
-                return XCTFail("expected ShellRunner.Error.commandFailed, got \(error)")
-            }
+    @Test
+    func isAncestor_invalidRef_throws() {
+        #expect(throws: ShellRunner.Error.self) {
+            try sut.isAncestor("HEAD", of: "no-such-branch")
         }
     }
 }

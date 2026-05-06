@@ -9,8 +9,10 @@ public extension Gito {
             let out = try Shell.command("git merge-base \(a) \(b)", in: folder).run()
             return out.isEmpty ? nil : out
         } catch {
-            if case ShellRunner.Error.commandFailed(_, 1, _) = error { return nil }
-            throw error
+            guard case let .commandFailed(_, exitCode, _) = error, exitCode == 1 else {
+                throw error
+            }
+            return nil
         }
     }
 
@@ -22,8 +24,10 @@ public extension Gito {
             try Shell.command("git merge-base --is-ancestor \(commit) \(ref)", in: folder).run()
             return true
         } catch {
-            if case ShellRunner.Error.commandFailed(_, 1, _) = error { return false }
-            throw error
+            guard case let .commandFailed(_, exitCode, _) = error, exitCode == 1 else {
+                throw error
+            }
+            return false
         }
     }
 }

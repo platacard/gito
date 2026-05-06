@@ -5,31 +5,38 @@ public enum CherryPickOutcome: Sendable, Equatable {
     case applied
     case conflict(output: String)
     case empty
+    case skipped
+    case aborted
 }
 
-// Three separate methods. cherryPick has meaningful exit-1 outcomes
-// (conflict, empty); skip and abort don't.
+public enum CherryPickAction: Sendable, Equatable {
+    case apply(hash: String, recordOrigin: Bool = true)
+    case skip
+    case abort
+}
+
 public extension Gito {
     @discardableResult
-    func cherryPick(hash: String, recordOrigin: Bool = true) throws -> CherryPickOutcome {
-        let cmd = recordOrigin ? "git cherry-pick -x \(hash)" : "git cherry-pick \(hash)"
-        do {
-            try Shell.command(cmd, in: folder, options: [.printOutput]).run()
-            return .applied
-        } catch {
-            if case let ShellRunner.Error.commandFailed(_, 1, output) = error {
-                if output.contains("now empty") { return .empty }
-                return .conflict(output: output)
+    func cherryPick(_ action: CherryPickAction) throws -> CherryPickOutcome {
+        switch action {
+        case let .apply(hash, recordOrigin):
+            let cmd = recordOrigin ? "git cherry-pick -x \(hash)" : "git cherry-pick \(hash)"
+            do {
+                try Shell.command(cmd, in: folder, options: [.printOutput]).run()
+                return .applied
+            } catch {
+                guard case let .commandFailed(_, exitCode, output) = error, exitCode == 1 else {
+                    throw error
+                }
+                let unmerged = (try? Shell.command("git ls-files --unmerged", in: folder).run()) ?? ""
+                return unmerged.isEmpty ? .empty : .conflict(output: output)
             }
-            throw error
+        case .skip:
+            try Shell.command("git cherry-pick --skip", in: folder, options: [.printOutput]).run()
+            return .skipped
+        case .abort:
+            try Shell.command("git cherry-pick --abort", in: folder, options: [.printOutput]).run()
+            return .aborted
         }
-    }
-
-    func cherryPickSkip() throws {
-        try Shell.command("git cherry-pick --skip", in: folder, options: [.printOutput]).run()
-    }
-
-    func cherryPickAbort() throws {
-        try Shell.command("git cherry-pick --abort", in: folder, options: [.printOutput]).run()
     }
 }
