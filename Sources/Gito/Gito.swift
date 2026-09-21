@@ -11,6 +11,11 @@ public class Gito {
     private var logger = Cronista(module: "Gito", category: "default")
     private var env: [String: String] { ProcessInfo.processInfo.environment }
 
+    /// GITO_QUIET=true silences git command console output.
+    var shellOptions: [ShellOption] {
+        env["GITO_QUIET"]?.lowercased() == "true" ? [] : [.printOutput]
+    }
+
     let folder: URL
 
     public nonisolated init(
@@ -25,7 +30,7 @@ public class Gito {
 public extension Gito {
 
     func ensureGitStatusClean() throws {
-        let result = try Shell.command("git status --porcelain", in: folder, options: [.printOutput]).run()
+        let result = try Shell.command("git status --porcelain", in: folder, options: shellOptions).run()
 
         if !result.isEmpty {
             logger.error("Git status should be clean! Check your files:")
@@ -65,24 +70,24 @@ public extension Gito {
     
     /// Returns an array of the local tags that reference the current commit (HEAD)
     func getHeadTags() throws -> [String] {
-        let output = try Shell.command("git tag --points-at HEAD", in: folder, options: [.printOutput]).run()
+        let output = try Shell.command("git tag --points-at HEAD", in: folder, options: shellOptions).run()
         return output.split(separator: "\n").map { String($0) }.filter { !$0.isEmpty }
     }
     
     /// Sets a tag, does not push
     func setTag(_ tag: String) throws {
-        try Shell.command("git tag -a '\(tag)' -m 'plata_swift_tools_\(tag)'", in: folder, options: [.printOutput]).run()
+        try Shell.command("git tag -a '\(tag)' -m 'plata_swift_tools_\(tag)'", in: folder, options: shellOptions).run()
     }
     
     /// Removes the local tag
     func removeTag(_ tag: String) throws {
-        try Shell.command("git tag -d '\(tag)'", in: folder, options: [.printOutput]).run()
+        try Shell.command("git tag -d '\(tag)'", in: folder, options: shellOptions).run()
     }
     
     /// Pushes the tag if present
     func pushTag(_ tag: String) throws {
-        try Shell.command("git rev-parse '\(tag)'", in: folder, options: [.printOutput]).run() // Check if the tag exists
-        try Shell.command("git push origin '\(tag)'", in: folder, options: [.printOutput]).run()
+        try Shell.command("git rev-parse '\(tag)'", in: folder, options: shellOptions).run() // Check if the tag exists
+        try Shell.command("git push origin '\(tag)'", in: folder, options: shellOptions).run()
     }
     
     func commitSHA() throws -> String {
@@ -94,20 +99,20 @@ public extension Gito {
             return githubSHA
         }
 
-        let sha = try Shell.command("git log -1 --pretty=format:'%h' | xargs echo", in: folder, options: [.printOutput]).run()
+        let sha = try Shell.command("git log -1 --pretty=format:'%h' | xargs echo", in: folder, options: shellOptions).run()
         return sha.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     func clone(branch: String, depth: String = "1", url: String, targetFolder: String) throws {
-        try Shell.command("git clone --branch \"\(branch)\" --depth \(depth) \(url) \(targetFolder)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git clone --branch \"\(branch)\" --depth \(depth) \(url) \(targetFolder)", in: folder, options: shellOptions).run()
     }
     
     func add(file: String = ".") throws {
-        try Shell.command("git add \(file)", in: folder, options: [.printOutput]).run()
+        try Shell.command("git add \(file)", in: folder, options: shellOptions).run()
     }
     
     func commit(message: String) throws {
-        try Shell.command("git commit -m \"\(message)\"", in: folder, options: [.printOutput]).run()
+        try Shell.command("git commit -m \"\(message)\"", in: folder, options: shellOptions).run()
     }
 
     /// Variant that supports skipping pre-commit hooks and empty commits.
@@ -116,19 +121,19 @@ public extension Gito {
         if noVerify { parts.append("--no-verify") }
         if allowEmpty { parts.append("--allow-empty") }
         parts.append("-m \"\(message)\"")
-        try Shell.command(parts.joined(separator: " "), in: folder, options: [.printOutput]).run()
+        try Shell.command(parts.joined(separator: " "), in: folder, options: shellOptions).run()
     }
     
     func push(options: [String], dst: String = "", branch: String = "") throws {
-        try Shell.command("git push \(options.joined(separator: " ")) \(dst) \"\(branch)\"", in: folder, options: [.printOutput]).run()
+        try Shell.command("git push \(options.joined(separator: " ")) \(dst) \"\(branch)\"", in: folder, options: shellOptions).run()
     }
     
     func branch(name: String, options: [String] = []) throws {
-        try Shell.command("git branch \(options.joined(separator: " ")) \"\(name)\"", in: folder, options: [.printOutput]).run()
+        try Shell.command("git branch \(options.joined(separator: " ")) \"\(name)\"", in: folder, options: shellOptions).run()
     }
     
     func checkout(branch: String, options: [String] = []) throws {
-        try Shell.command("git checkout \(options.joined(separator: " ")) \"\(branch)\"", in: folder, options: [.printOutput]).run()
+        try Shell.command("git checkout \(options.joined(separator: " ")) \"\(branch)\"", in: folder, options: shellOptions).run()
     }
 
     /// Variant that takes a starting-point ref (e.g. `git checkout -B feature origin/main`).
@@ -137,7 +142,7 @@ public extension Gito {
         try Shell.command(
             "git checkout \(opts) \"\(branch)\" \"\(startPoint)\"",
             in: folder,
-            options: [.printOutput]
+            options: shellOptions
         ).run()
     }
     
@@ -157,11 +162,11 @@ public extension Gito {
             depth.map { $0 > 0 ? "--depth \($0)" : "--unshallow" }
         ]
 
-        try Shell.command(command.compactMap { $0 }.joined(separator: " "), in: folder, options: [.printOutput]).run()
+        try Shell.command(command.compactMap { $0 }.joined(separator: " "), in: folder, options: shellOptions).run()
     }
     
     func mergedRemoteBranches(stripOrigin: Bool = true) throws -> [String] {
-        try Shell.command("git --no-pager branch -r --merged origin/main | grep -v HEAD || echo \"\"", in: folder, options: [.printOutput])
+        try Shell.command("git --no-pager branch -r --merged origin/main | grep -v HEAD || echo \"\"", in: folder, options: shellOptions)
             .run()
             .components(separatedBy: "\n")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -172,7 +177,7 @@ public extension Gito {
     }
     
     func unmergedRemoteBranches(stripOrigin: Bool = true) throws -> [String] {
-        try Shell.command("git --no-pager branch -r --no-merged | grep -v HEAD || echo \"\"", in: folder, options: [.printOutput])
+        try Shell.command("git --no-pager branch -r --no-merged | grep -v HEAD || echo \"\"", in: folder, options: shellOptions)
             .run()
             .split(separator: "\n")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -187,7 +192,7 @@ public extension Gito {
         try Shell.command(
             "git --no-pager log --no-merges -n 1 --format=\"%cr, %an\" \"\(branch)\"",
             in: folder,
-            options: [.printOutput]
+            options: shellOptions
         )
         .run()
         .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -203,7 +208,7 @@ public extension Gito {
             let lastCommitDate = try Shell.command(
                 "git --no-pager log -1 --format=%cd --date=iso-strict \"\(branch)\"",
                 in: folder,
-                options: [.printOutput]
+                options: shellOptions
             )
             .run()
 
@@ -224,7 +229,7 @@ public extension Gito {
     
     /// Removes the branch from remote (origin)
     func removeRemoteBranch(_ branch: String) throws {
-        try Shell.command("git push --delete origin \"\(branch)\"", in: folder, options: [.printOutput]).run()
+        try Shell.command("git push --delete origin \"\(branch)\"", in: folder, options: shellOptions).run()
     }
     
     enum CommitComponent: String, CaseIterable {
@@ -257,7 +262,7 @@ public extension Gito {
             --pretty=format:"\(componentsString)"
             """,
             in: folder,
-            options: [.printOutput]
+            options: shellOptions
         )
         .run()
 
@@ -304,7 +309,7 @@ public extension Gito {
                 "\(hash)" | awk '{added+=$1; deleted+=$2} END {print added+deleted}'
                 """,
                 in: folder,
-                options: [.printOutput]
+                options: shellOptions
             )
             .run()
             .trimmingCharacters(in: .whitespacesAndNewlines)

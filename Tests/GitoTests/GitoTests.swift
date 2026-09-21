@@ -215,6 +215,22 @@ final class GitoTests: XCTestCase {
         XCTAssert(changedLines.count > 0)
         XCTAssert(changedLines.allSatisfy { $0.value > 0 })
     }
+
+    func test_ShellOptionsPrintByDefault() {
+        // Given
+        unsetenv("GITO_QUIET")
+        // Then
+        XCTAssertEqual(sut.shellOptions, [.printOutput])
+    }
+
+    func test_ShellOptionsEmptyWhenQuietEnvSet() {
+        // Given
+        setenv("GITO_QUIET", "TRUE", 1)
+        // Then
+        XCTAssertEqual(sut.shellOptions, [])
+        // Teardown
+        unsetenv("GITO_QUIET")
+    }
 }
 
 private extension URL {
