@@ -1,13 +1,13 @@
 {
-  "originHash" : "044d2042c85f9e33e77ad13145bd9776bb13a993bd469feba045f5a69e0e708b",
+  "originHash" : "b1c96be307ab9eec96ec4ebed5febb8ac1a90e79f4c07db3cc9c9babc643e25c",
   "pins" : [
     {
       "identity" : "corredor",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/platacard/corredor.git",
       "state" : {
-        "revision" : "0e578df029efd1e5d82c49352e3caf4f2b4628f5",
-        "version" : "1.0.0"
+        "revision" : "0bd26411795fd7b2a11104fa058a2e1d4cd719ac",
+        "version" : "1.2.1"
       }
     },
     {
