@@ -14,6 +14,7 @@ Gito is a Swift wrapper for various git commands, designed to work with CI/CD en
 - Commit SHA retrieval
 - Remote branch analysis (merged/unmerged)
 - Stale branch detection
+- Working tree files: tracked, untracked, changed since a commit, ignored folders
 - CI/CD integration with GitLab and GitHub variables
 
 ## Usage
@@ -28,6 +29,18 @@ try gito.ensureGitStatusClean()
 
 ...
 ```
+### Working Tree Files
+
+```swift
+let gito = Gito(in: repoRoot)
+
+let changed = try gito.changedFiles(since: "HEAD~3", under: ["Sources"])
+let untracked = try gito.untrackedFiles()
+let skipped = try gito.ignoredFolders()  // e.g. [".build"]
+```
+
+These run git without a shell and never print, whatever `GITO_QUIET` says; paths are repo-relative and verbatim.
+
 ## CI/CD Integration
 
 Gito automatically detects and uses CI/CD environment variables:
